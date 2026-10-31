@@ -41,22 +41,22 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden overflow-y-auto">
 
   <!-- 0. PUBLIC SAAS LANDING PAGE (PÁGINA COMERCIAL PARA CLIENTES QUE COMPRAN EL SAAS) -->
-  <div id="landing-screen" class="min-h-screen flex flex-col bg-slate-950">
+  <div id="landing-screen" class="min-h-screen flex-col bg-slate-950" style="display: flex;">
     <!-- Rendered dynamically by app.js -->
   </div>
 
   <!-- 1. LOGIN SCREEN (SOLO FORMULARIO LIMPIO DE ACCESO) -->
-  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/50 via-slate-950 to-slate-950">
+  <div id="login-screen" class="min-h-screen items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/50 via-slate-950 to-slate-950" style="display: none;">
     <!-- Rendered dynamically by app.js -->
   </div>
 
   <!-- 2. SUPERADMIN MASTER CONSOLE (OCULTO AL PÚBLICO — SOLO ACCESIBLE CON TU LOGIN PRIVADO) -->
-  <div id="superadmin-screen" class="hidden min-h-screen flex flex-col bg-slate-950">
+  <div id="superadmin-screen" class="min-h-screen flex-col bg-slate-950" style="display: none;">
     <!-- Rendered dynamically by app.js -->
   </div>
 
   <!-- 3. GYM OPERATIONAL WORKSPACE (VISTA DEL GIMNASIO) -->
-  <div id="gym-workspace" class="hidden flex-col min-h-screen">
+  <div id="gym-workspace" class="flex-col min-h-screen" style="display: none;">
   <!-- TOP BAR: SaaS Plan Switcher & Local Bridge Status -->
   <header class="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-30">
     <div class="flex items-center gap-3">

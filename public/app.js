@@ -80,24 +80,27 @@ function syncScreensVisibility() {
   const superEl = document.getElementById('superadmin-screen');
   const gymEl = document.getElementById('gym-workspace');
 
-  landingEl.classList.add('hidden');
-  loginEl.classList.add('hidden');
-  superEl.classList.add('hidden');
-  gymEl.classList.add('hidden');
-  gymEl.classList.remove('flex');
+  // Ocultar absolutamente todas las vistas y limpiar las inactivas
+  landingEl.style.display = 'none';
+  loginEl.style.display = 'none';
+  superEl.style.display = 'none';
+  gymEl.style.display = 'none';
+
+  landingEl.innerHTML = '';
+  loginEl.innerHTML = '';
+  superEl.innerHTML = '';
 
   if (state.screenMode === 'landing') {
-    landingEl.classList.remove('hidden');
+    landingEl.style.display = 'flex';
     landingEl.innerHTML = renderLandingScreen();
   } else if (state.screenMode === 'login') {
-    loginEl.classList.remove('hidden');
+    loginEl.style.display = 'flex';
     loginEl.innerHTML = renderLoginScreen();
-  } else if (state.screenMode === 'superadmin') {
-    superEl.classList.remove('hidden');
+  } else if (state.screenMode === 'superadmin' && state.session && state.session.role === 'superadmin') {
+    superEl.style.display = 'flex';
     superEl.innerHTML = renderSuperAdminScreen();
   } else {
-    gymEl.classList.remove('hidden');
-    gymEl.classList.add('flex');
+    gymEl.style.display = 'flex';
     updateHeaderAndNav();
     renderCurrentView();
   }
@@ -627,12 +630,10 @@ function updateHeaderAndNav() {
   const planSwitcher = document.getElementById('header-plan-switcher');
   const isSuper = Boolean(state.session && state.session.role === 'superadmin');
   if (btnSuper) {
-    btnSuper.classList.toggle('hidden', !isSuper);
-    btnSuper.classList.toggle('flex', isSuper);
+    btnSuper.style.display = isSuper ? 'flex' : 'none';
   }
   if (planSwitcher) {
-    planSwitcher.classList.toggle('hidden', !isSuper);
-    planSwitcher.classList.toggle('flex', isSuper);
+    planSwitcher.style.display = isSuper ? 'flex' : 'none';
   }
 
   // Branch selector
