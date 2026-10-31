@@ -485,9 +485,9 @@ const INITIAL_DB = {
     ]
   },
   superAdminAccount: {
-    email: "ceo@nexgym.mx",
-    password: "admin",
-    name: "CEO & Fundador — SuperAdmin SaaS"
+    email: "Bruce.fernando@hotmail.com",
+    password: "reynosa804",
+    name: "Bruce Fernando — CEO & SuperAdmin SaaS"
   },
   tenants: [
     {
@@ -585,8 +585,8 @@ function loadDb() {
   try {
     const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     let updated = false;
-    if (!db.superAdminAccount) {
-      db.superAdminAccount = INITIAL_DB.superAdminAccount;
+    if (!db.superAdminAccount || db.superAdminAccount.email !== INITIAL_DB.superAdminAccount.email || db.superAdminAccount.password !== INITIAL_DB.superAdminAccount.password) {
+      db.superAdminAccount = { ...INITIAL_DB.superAdminAccount };
       updated = true;
     }
     if (!db.tenants) {
