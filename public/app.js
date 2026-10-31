@@ -2599,5 +2599,6 @@ window.app = {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
+  syncScreensVisibility();
   fetchState();
 });
