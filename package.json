@@ -1,0 +1,14 @@
+{
+  "name": "nexgym-cloud-mx",
+  "version": "1.0.0",
+  "description": "SaaS de Administración de Gimnasios para México (BDKGYM en la Nube) con Módulos Integrados, POS, CFDI 4.0, Control de Acceso Biométrico/QR, Mapa Boutique y WhatsApp IA",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  }
+}
