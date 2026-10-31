@@ -1,7 +1,7 @@
 const state = {
   db: null,
-  screenMode: 'login', // 'login' | 'superadmin' | 'gym'
-  session: null,       // { role: 'superadmin' | 'gym_owner', name, email, gymName }
+  screenMode: 'landing', // 'landing' | 'login' | 'superadmin' | 'gym'
+  session: null,         // { role: 'superadmin' | 'gym_owner', name, email, gymName }
   loginError: '',
   currentView: 'dashboard',
   posCart: [],
@@ -75,140 +75,359 @@ async function fetchState() {
 }
 
 function syncScreensVisibility() {
+  const landingEl = document.getElementById('landing-screen');
   const loginEl = document.getElementById('login-screen');
   const superEl = document.getElementById('superadmin-screen');
   const gymEl = document.getElementById('gym-workspace');
 
-  if (state.screenMode === 'login') {
+  landingEl.classList.add('hidden');
+  loginEl.classList.add('hidden');
+  superEl.classList.add('hidden');
+  gymEl.classList.add('hidden');
+  gymEl.classList.remove('flex');
+
+  if (state.screenMode === 'landing') {
+    landingEl.classList.remove('hidden');
+    landingEl.innerHTML = renderLandingScreen();
+  } else if (state.screenMode === 'login') {
     loginEl.classList.remove('hidden');
-    superEl.classList.add('hidden');
-    gymEl.classList.add('hidden');
     loginEl.innerHTML = renderLoginScreen();
   } else if (state.screenMode === 'superadmin') {
-    loginEl.classList.add('hidden');
     superEl.classList.remove('hidden');
-    gymEl.classList.add('hidden');
     superEl.innerHTML = renderSuperAdminScreen();
   } else {
-    loginEl.classList.add('hidden');
-    superEl.classList.add('hidden');
     gymEl.classList.remove('hidden');
+    gymEl.classList.add('flex');
     updateHeaderAndNav();
     renderCurrentView();
   }
 }
 
 /* ============================================================================
-   PANTALLA DE LOGIN DUAL (DUEÑOS DE GIMNASIOS & TU SUPERADMIN)
+   0. PÁGINA COMERCIAL DEL SAAS (LANDING PAGE PÚBLICA PARA VENDER EL SOFTWARE)
 ============================================================================ */
-function renderLoginScreen() {
-  const db = state.db || { tenants: [], superAdminAccount: { email: 'ceo@nexgym.mx' } };
-  const tenants = db.tenants || [];
-
+function renderLandingScreen() {
   return `
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/95 shadow-2xl">
-      <!-- Columna Izquierda: Formulario de Acceso -->
-      <div class="lg:col-span-6 p-8 sm:p-10 flex flex-col justify-between space-y-6">
-        <div class="space-y-2">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <i class="fa-solid fa-dumbbell text-slate-950 text-xl"></i>
-            </div>
-            <div>
-              <div class="font-black text-xl text-white tracking-tight">NexGym Cloud <span class="text-emerald-400">MX</span></div>
-              <div class="text-xs text-slate-400">El Sistema Operativo en la Nube para Gimnasios en México</div>
-            </div>
+    <!-- Navbar Comercial -->
+    <nav class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur border-b border-slate-800/80 px-6 py-4">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <i class="fa-solid fa-dumbbell text-slate-950 text-lg"></i>
           </div>
-        </div>
-
-        <div class="space-y-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-white">Iniciar Sesión</h1>
-            <p class="text-xs text-slate-400 mt-1">Ingresa con tu cuenta de <strong>Dueño de Gimnasio</strong> o tu llave maestra de <strong>SuperAdmin SaaS</strong>.</p>
+            <span class="font-black text-lg text-white tracking-tight">NexGym Cloud <span class="text-emerald-400">MX</span></span>
+            <span class="hidden sm:inline-block ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Hecho para México</span>
           </div>
-
-          ${state.loginError ? `
-            <div class="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 font-medium flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
-              <span>${state.loginError}</span>
-            </div>
-          ` : ''}
-
-          <form onsubmit="window.app.submitLogin(event)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Correo Electrónico:</label>
-              <div class="relative">
-                <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                <input id="login-email" type="email" required value="ceo@nexgym.mx" placeholder="correo@gimnasio.mx" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Contraseña:</label>
-              <div class="relative">
-                <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                <input id="login-password" type="password" required value="admin" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
-              </div>
-            </div>
-
-            <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
-              <span>Entrar a la Plataforma</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
-          </form>
         </div>
 
-        <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
-          <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>CFDI 4.0 SAT Integrado</span>
-          <span>Stripe MX • ZKTeco Bridge</span>
+        <div class="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
+          <a href="#funciones" class="hover:text-emerald-400 transition">¿Qué incluye?</a>
+          <a href="#torniquetes" class="hover:text-emerald-400 transition">Torniquetes & Offline</a>
+          <a href="#precios" class="hover:text-emerald-400 transition">Planes y Precios</a>
+          <a href="#modulos" class="hover:text-emerald-400 transition">Módulos Extra</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="window.app.openLoginScreen()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs border border-slate-700 transition flex items-center gap-2">
+            <i class="fa-solid fa-right-to-bracket text-emerald-400"></i>
+            <span>Iniciar Sesión Clientes</span>
+          </button>
+          <a href="#precios" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20">
+            Ver Planes desde $599
+          </a>
         </div>
       </div>
+    </nav>
 
-      <!-- Columna Derecha: Accesos Rápidos en 1 Clic (Para Ti y Para Probar Clientes) -->
-      <div class="lg:col-span-6 bg-slate-950/90 border-t lg:border-t-0 lg:border-l border-slate-800 p-8 sm:p-10 flex flex-col justify-between space-y-6">
-        <div class="space-y-4">
-          <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-950/40 to-slate-900 border border-purple-500/40 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500 text-white">
-                <i class="fa-solid fa-crown text-amber-300 mr-1"></i>Tu Panel Dueño del SaaS
-              </span>
-              <span class="text-xs text-purple-300 mono">ceo@nexgym.mx / admin</span>
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden py-16 sm:py-24 px-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/40 via-slate-950 to-slate-950">
+      <div class="max-w-5xl mx-auto text-center space-y-6">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+          <i class="fa-solid fa-bolt"></i>
+          <span>La evolución en la nube de los sistemas de escritorio tradicionales en México</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
+          Administra tu Gimnasio, Torniquetes y <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Facturación CFDI 4.0</span> en un solo lugar
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
+          Diseñado específicamente para <strong>gimnasios de pesas, boxes de CrossFit y estudios boutique en México</strong>. Controla tu recepción con cortes de caja antifraude, abre torniquetes por huella/rostro incluso si se cae el internet y automatiza tus cobros con Stripe, SPEI y WhatsApp IA.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <button onclick="window.app.openLoginScreen()" class="px-7 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition shadow-xl shadow-emerald-500/25 flex items-center gap-2">
+            <span>Acceder a la Plataforma (Login)</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          <a href="#precios" class="px-7 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm border border-slate-700 transition">
+            Conocer Planes y Módulos
+          </a>
+        </div>
+
+        <!-- Trust Badges MX -->
+        <div class="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto text-xs text-slate-400">
+          <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i>
+            <span>CFDI 4.0 SAT Nativo</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-fingerprint text-sky-400"></i>
+            <span>ZKTeco & Hikvision</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-credit-card text-indigo-400"></i>
+            <span>Stripe MX / SPEI / OXXO</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-center gap-2">
+            <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+            <span>Alertas & IA WhatsApp</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección: ¿Qué puede hacer quien compra el SaaS? -->
+    <section id="funciones" class="py-16 px-6 max-w-7xl mx-auto space-y-12">
+      <div class="text-center space-y-2 max-w-3xl mx-auto">
+        <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">Todo lo que tu gimnasio necesita</span>
+        <h2 class="text-3xl font-black text-white">¿Qué puedes hacer con NexGym Cloud MX?</h2>
+        <p class="text-sm text-slate-400">Empieza con el módulo básico de recepción y facturación, y agrega potencia conforme tu gimnasio crezca.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-cash-register"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">1. Punto de Venta (POS) y Corte de Caja Ciego</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Cobra mensualidades, visitas por día, aguas y suplementos en segundos. El <strong>Corte de Caja Ciego Antifraude</strong> obliga al recepcionista a contar el efectivo físico sin saber cuánto espera el sistema, eliminando robos hormiga.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">2. Autofacturación CFDI 4.0 por Código QR</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Olvídate de capturar constancias fiscales a mano. Cada ticket impreso de 80mm incluye un <strong>Código QR y Folio Único</strong> para que el socio genere su factura CFDI 4.0 (Clave SAT <code>93141500</code>) en 30 segundos desde su celular.
+          </p>
+        </div>
+
+        <div id="torniquetes" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-fingerprint"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">3. Torniquetes, Huella y Rostro (Modo Offline)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Compatible con lectores <strong>ZKTeco, Hikvision y códigos QR</strong>. Nuestro puente local guarda en caché el padrón de socios activos para que <strong>tu torniquete siga abriendo en 0.3 segundos aunque se caiga el internet</strong>.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-credit-card"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">4. Domiciliación Bancaria y Links de Pago</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Asegura tu flujo de efectivo mensual domiciliando tarjetas de crédito y débito con <strong>Stripe México y Conekta</strong>, o envía links de pago por WhatsApp con soporte para transferencia SPEI y OXXO Pay.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">5. App del Socio: Rutinas, Videos y Nutrición</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Tus socios llevan en su celular su pase QR de acceso, sus días restantes de vigencia, su <strong>rutina personalizada con videos explicativos</strong> y el historial de su peso y porcentaje de grasa corporal.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">6. Mapa Boutique (Bicis/Reformers) + IA WhatsApp</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Ideal para estudios de <strong>Pilates Reformer, Indoor Cycling y Funcional</strong>: tus clientes eligen exactamente el número de su cama o bici en un mapa interactivo, mientras nuestra IA atiende WhatsApp 24/7.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Precios ("El Punto Dulce") -->
+    <section id="precios" class="py-16 px-6 bg-slate-900/50 border-y border-slate-800">
+      <div class="max-w-7xl mx-auto space-y-10">
+        <div class="text-center space-y-2 max-w-3xl mx-auto">
+          <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-400">Precios Transparentes en Pesos Mexicanos</span>
+          <h2 class="text-3xl font-black text-white">Planes Diseñados para el Mercado Mexicano</h2>
+          <p class="text-sm text-slate-400">Sin plazos forzosos, sin cobros en dólares y con <strong>$0 MXN de costo de instalación</strong>.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Plan Básico -->
+          <div class="p-7 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div>
+                <span class="text-xs font-bold uppercase px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">Gimnasios en Crecimiento</span>
+                <h3 class="text-xl font-black text-white mt-3">Plan Básico (BDK Cloud)</h3>
+                <div class="text-4xl font-black text-white mt-2">$599 <span class="text-xs font-normal text-slate-400">MXN / mes</span></div>
+                <p class="text-xs text-slate-400 mt-2">Todo lo necesario para controlar tu recepción y facturar sin complicaciones.</p>
+              </div>
+              <ul class="space-y-2.5 text-xs text-slate-200 pt-3 border-t border-slate-800">
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Recepción POS</strong> y Corte de Caja Antifraude</li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Hasta <strong>150 socios activos</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Control de Acceso con <strong>Código QR</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Recordatorios de cobro por <strong>WhatsApp</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Portal y Link de Autofacturación CFDI 4.0</strong></li>
+              </ul>
             </div>
-            <div>
-              <h2 class="text-base font-extrabold text-white">Acceso Maestro SuperAdmin (Para Ti)</h2>
-              <p class="text-xs text-slate-300 mt-0.5">Administra todos tus gimnasios clientes en México, cobra mensualidades, activa módulos extra y da de alta nuevos gimnasios.</p>
-            </div>
-            <button onclick="window.app.quickLogin('ceo@nexgym.mx', 'admin')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white font-extrabold text-xs transition shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2">
-              <i class="fa-solid fa-crown text-amber-300"></i> Entrar a Mi Consola SuperAdmin Ahora →
+            <button onclick="window.app.openLoginScreen()" class="mt-8 w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
+              Comenzar con Plan Básico →
             </button>
           </div>
 
-          <div class="space-y-2.5">
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">
-              <i class="fa-solid fa-store text-emerald-400 mr-1"></i> Entrar como Dueño de Gimnasio (Vista Cliente):
+          <!-- Plan Pro -->
+          <div class="p-7 rounded-3xl bg-gradient-to-b from-emerald-950/40 to-slate-900 border-2 border-emerald-500 flex flex-col justify-between shadow-2xl shadow-emerald-500/10 relative">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-500 text-slate-950">Más Contratado</span>
+                <span class="text-xs text-emerald-400 font-bold">$0 Instalación</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-black text-white mt-1">Plan Pro (Full Gym)</h3>
+                <div class="text-4xl font-black text-white mt-2">$1,199 <span class="text-xs font-normal text-slate-400">MXN / mes</span></div>
+                <p class="text-xs text-slate-300 mt-2">Automatización total con biometría, domiciliación bancaria y App de rutinas.</p>
+              </div>
+              <ul class="space-y-2.5 text-xs text-slate-100 pt-3 border-t border-slate-800">
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Todo lo del Plan Básico incluido</li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Socios y Staff Ilimitados</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Conexión Torniquetes, Huella y Rostro (Offline)</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Domiciliación con Stripe, Conekta y SPEI</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>App Web/Móvil con Rutinas y Progreso Corporal</strong></li>
+              </ul>
             </div>
+            <button onclick="window.app.openLoginScreen()" class="mt-8 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20">
+              Elegir Plan Pro →
+            </button>
+          </div>
 
-            ${tenants.map(t => {
-              const mrr = calculateTenantMRR(t);
-              const planLabel = t.plan === 'basico' ? 'Plan Básico' : t.plan === 'pro' ? 'Plan Pro' : 'Plan Boutique';
-              return `
-                <div class="p-3.5 rounded-xl bg-slate-900 border ${t.status === 'suspendido' ? 'border-rose-500/40 opacity-75' : 'border-slate-800 hover:border-emerald-500/40'} flex items-center justify-between gap-3 transition">
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-white text-xs">${t.gymName}</span>
-                      <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">${planLabel} ($${mrr}/mes)</span>
-                      ${t.status === 'suspendido' ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">SUSPENDIDO</span>' : ''}
-                    </div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">${t.ownerName} • <span class="mono text-slate-300">${t.email}</span> (Pass: <code class="text-emerald-400">${t.password}</code>)</div>
-                  </div>
-                  <button onclick="window.app.quickLogin('${t.email}', '${t.password}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 font-bold text-xs transition shrink-0">
-                    Entrar como Gym →
-                  </button>
-                </div>
-              `;
-            }).join('')}
+          <!-- Plan Boutique / Cadenas -->
+          <div class="p-7 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div>
+                <span class="text-xs font-bold uppercase px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300">Estudios Boutique y Cadenas</span>
+                <h3 class="text-xl font-black text-white mt-3">Plan Boutique & IA</h3>
+                <div class="text-4xl font-black text-white mt-2">$2,499 <span class="text-xs font-normal text-slate-400">MXN / mes</span></div>
+                <p class="text-xs text-slate-400 mt-2">La experiencia más avanzada para estudios de Pilates, Cycling y cadenas multisucursal.</p>
+              </div>
+              <ul class="space-y-2.5 text-xs text-slate-200 pt-3 border-t border-slate-800">
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Todo lo del Plan Pro incluido</li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Mapa Interactivo de Lugares (Bicis / Reformers)</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Recepcionista con IA en WhatsApp 24/7</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Gestión Multisucursal y Acceso Inter-Clubes</strong></li>
+                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i><strong>Ahorra más del 50% frente a Buq ($0 Setup)</strong></li>
+              </ul>
+            </div>
+            <button onclick="window.app.openLoginScreen()" class="mt-8 w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
+              Elegir Plan Boutique →
+            </button>
           </div>
         </div>
+
+        <!-- Módulos a la Carta -->
+        <div id="modulos" class="p-6 rounded-3xl bg-slate-950 border border-slate-800 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-lg font-extrabold text-white">¿Empiezas con el Plan Básico ($599) y solo necesitas un módulo extra?</h3>
+              <p class="text-xs text-slate-400">Nuestro sistema es 100% modular. Puedes agregar únicamente el módulo que necesites en cualquier momento:</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+            ${Object.values(ADDON_PRICES).map(a => `
+              <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
+                <span class="font-semibold text-slate-200"><i class="fa-solid ${a.icon} text-emerald-400 mr-2"></i>${a.name}</span>
+                <span class="font-extrabold text-emerald-400 shrink-0">+$${a.price}/mes</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 px-6 border-t border-slate-900 text-center text-xs text-slate-500 space-y-2">
+      <div class="font-bold text-slate-300">NexGym Cloud MX — Software para Gimnasios y Centros Fitness en México</div>
+      <div>Facturación CFDI 4.0 SAT • Control Biométrico ZKTeco/Hikvision • Cobros Recurrentes Stripe MX</div>
+    </footer>
+  `;
+}
+
+/* ============================================================================
+   1. PANTALLA DE LOGIN LIMPIA (SIN EXPONER EL SUPERADMIN NI DATOS DE OTROS GYMS)
+============================================================================ */
+function renderLoginScreen() {
+  return `
+    <div class="max-w-md w-full rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/95 shadow-2xl p-8 sm:p-10 space-y-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <i class="fa-solid fa-dumbbell text-slate-950 text-xl"></i>
+          </div>
+          <div>
+            <div class="font-black text-xl text-white tracking-tight">NexGym Cloud <span class="text-emerald-400">MX</span></div>
+            <div class="text-xs text-slate-400">Acceso a tu Gimnasio en la Nube</div>
+          </div>
+        </div>
+        <button onclick="window.app.openLandingScreen()" class="text-xs text-slate-400 hover:text-emerald-400 font-semibold transition">
+          ← Volver al inicio
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white">Iniciar Sesión</h1>
+          <p class="text-xs text-slate-400 mt-1">Ingresa el correo y contraseña asignados a tu gimnasio.</p>
+        </div>
+
+        ${state.loginError ? `
+          <div class="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 font-medium flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+            <span>${state.loginError}</span>
+          </div>
+        ` : ''}
+
+        <form onsubmit="window.app.submitLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Correo Electrónico:</label>
+            <div class="relative">
+              <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+              <input id="login-email" type="email" required placeholder="correo@tugimnasio.mx" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Contraseña:</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+              <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+            <span>Entrar a mi Gimnasio</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+        <span><i class="fa-solid fa-lock text-emerald-400 mr-1"></i>Conexión Encriptada SSL</span>
+        <span>Soporte México 24/7</span>
       </div>
     </div>
   `;
@@ -245,7 +464,7 @@ function renderSuperAdminScreen() {
         <button onclick="window.app.openNewTenantModal()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
           <i class="fa-solid fa-plus-circle"></i> Dar de Alta Nuevo Gimnasio Cliente
         </button>
-        <button onclick="window.app.openLoginScreen()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition flex items-center gap-1.5">
+        <button onclick="window.app.logout()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition flex items-center gap-1.5">
           <i class="fa-solid fa-right-from-bracket text-rose-400"></i> Cerrar Sesión
         </button>
       </div>
@@ -402,6 +621,19 @@ function updateHeaderAndNav() {
   const cfg = state.db.saasConfig;
 
   document.getElementById('header-gym-name').textContent = cfg.gymName;
+
+  // Mostrar u ocultar controles exclusivos de SuperAdmin
+  const btnSuper = document.getElementById('btn-go-superadmin');
+  const planSwitcher = document.getElementById('header-plan-switcher');
+  const isSuper = Boolean(state.session && state.session.role === 'superadmin');
+  if (btnSuper) {
+    btnSuper.classList.toggle('hidden', !isSuper);
+    btnSuper.classList.toggle('flex', isSuper);
+  }
+  if (planSwitcher) {
+    planSwitcher.classList.toggle('hidden', !isSuper);
+    planSwitcher.classList.toggle('flex', isSuper);
+  }
 
   // Branch selector
   const branchSelect = document.getElementById('branch-selector');
@@ -1683,6 +1915,21 @@ function renderSaaSModulesConfig() {
    ACTIONS & CONTROLLER METHODS
 ============================================================================ */
 window.app = {
+  openLandingScreen() {
+    state.screenMode = 'landing';
+    state.loginError = '';
+    syncScreensVisibility();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  logout() {
+    state.session = null;
+    state.screenMode = 'landing';
+    state.loginError = '';
+    syncScreensVisibility();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
   openLoginScreen() {
     state.screenMode = 'login';
     state.loginError = '';
@@ -1691,6 +1938,7 @@ window.app = {
   },
 
   openSuperAdmin() {
+    if (!state.session || state.session.role !== 'superadmin') return;
     state.screenMode = 'superadmin';
     syncScreensVisibility();
     window.scrollTo({ top: 0, behavior: 'smooth' });

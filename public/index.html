@@ -40,18 +40,23 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden overflow-y-auto">
 
-  <!-- 1. LOGIN SCREEN (DUEÑOS DE GIMNASIOS & SUPERADMIN) -->
+  <!-- 0. PUBLIC SAAS LANDING PAGE (PÁGINA COMERCIAL PARA CLIENTES QUE COMPRAN EL SAAS) -->
+  <div id="landing-screen" class="min-h-screen flex flex-col bg-slate-950">
+    <!-- Rendered dynamically by app.js -->
+  </div>
+
+  <!-- 1. LOGIN SCREEN (SOLO FORMULARIO LIMPIO DE ACCESO) -->
   <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/50 via-slate-950 to-slate-950">
     <!-- Rendered dynamically by app.js -->
   </div>
 
-  <!-- 2. SUPERADMIN MASTER CONSOLE (SOLO PARA TI COMO DUEÑO DEL SAAS) -->
+  <!-- 2. SUPERADMIN MASTER CONSOLE (OCULTO AL PÚBLICO — SOLO ACCESIBLE CON TU LOGIN PRIVADO) -->
   <div id="superadmin-screen" class="hidden min-h-screen flex flex-col bg-slate-950">
     <!-- Rendered dynamically by app.js -->
   </div>
 
   <!-- 3. GYM OPERATIONAL WORKSPACE (VISTA DEL GIMNASIO) -->
-  <div id="gym-workspace" class="flex flex-col min-h-screen">
+  <div id="gym-workspace" class="hidden flex-col min-h-screen">
   <!-- TOP BAR: SaaS Plan Switcher & Local Bridge Status -->
   <header class="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-30">
     <div class="flex items-center gap-3">
@@ -61,7 +66,7 @@
       <div>
         <div class="flex items-center gap-2">
           <span class="font-extrabold tracking-tight text-white text-base">NexGym Cloud <span class="text-emerald-400">MX</span></span>
-          <span id="role-badge-header" class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">BDKGYM en la Nube</span>
+          <span id="role-badge-header" class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Sistema Activo</span>
         </div>
         <div class="text-xs text-slate-400 flex items-center gap-2">
           <span id="header-gym-name">Titanes Fitness & Studio MX</span>
@@ -74,19 +79,19 @@
 
     <!-- Hardware Bridge & Offline Status -->
     <div class="flex items-center gap-2 flex-wrap">
-      <!-- Botón para abrir la Consola SuperAdmin (Para ti) -->
-      <button onclick="window.app.openSuperAdmin()" id="btn-go-superadmin" class="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-95 transition shadow-md shadow-purple-500/20 flex items-center gap-1.5">
+      <!-- Botón para volver a la Consola SuperAdmin (OCULTO para dueños de gym; solo visible cuando entras con tu cuenta SuperAdmin) -->
+      <button onclick="window.app.openSuperAdmin()" id="btn-go-superadmin" class="hidden px-3 py-1.5 rounded-lg text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-95 transition shadow-md shadow-purple-500/20 items-center gap-1.5">
         <i class="fa-solid fa-crown text-amber-300"></i>
-        <span>Mi SuperAdmin</span>
+        <span>Volver a Mi SuperAdmin</span>
       </button>
 
-      <button onclick="window.app.toggleOfflineSimulation()" id="btn-offline-sim" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-slate-800/90 border-slate-700 text-slate-300 hover:bg-slate-800" title="Simular caída de internet Telmex/Totalplay para probar el Caché Local Offline">
+      <button onclick="window.app.toggleOfflineSimulation()" id="btn-offline-sim" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition bg-slate-800/90 border-slate-700 text-slate-300 hover:bg-slate-800" title="Estado del puente con torniquete y caché local">
         <span id="offline-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span id="offline-label">Bridge: Online</span>
       </button>
 
-      <!-- Quick SaaS Plan Switcher (For Selling / Demoing to Gym Owners) -->
-      <div id="header-plan-switcher" class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+      <!-- Quick SaaS Plan Switcher (Oculto para dueños normales; visible solo para SuperAdmin) -->
+      <div id="header-plan-switcher" class="hidden items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
         <button onclick="window.app.switchPlan('basico')" id="plan-btn-basico" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition">
           Básico $599
         </button>
@@ -100,12 +105,12 @@
 
       <button onclick="window.app.navigate('saas-modules')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:opacity-95 transition shadow-md shadow-amber-500/10 flex items-center gap-1.5">
         <i class="fa-solid fa-puzzle-piece"></i>
-        <span>Módulos (<span id="header-mrr-price">$599</span>/mes)</span>
+        <span>Mi Plan y Módulos (<span id="header-mrr-price">$599</span>/mes)</span>
       </button>
 
-      <button onclick="window.app.openLoginScreen()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 transition flex items-center gap-1.5" title="Ir a la pantalla de Login (Dueños de Gym / SuperAdmin)">
+      <button onclick="window.app.logout()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 transition flex items-center gap-1.5" title="Cerrar sesión">
         <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Login / Salir</span>
+        <span>Salir</span>
       </button>
     </div>
   </header>
@@ -166,11 +171,11 @@
           <span id="lock-whatsappAi" class="text-[10px] px-1.5 py-0.5 rounded"></span>
         </button>
 
-        <div class="pt-3 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-400/90">Panel Dueño del SaaS</div>
+        <div class="pt-3 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-400/90">Suscripción y Add-Ons</div>
 
         <button onclick="window.app.navigate('saas-modules')" data-nav="saas-modules" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition">
-          <span class="flex items-center gap-3"><i class="fa-solid fa-Sliders w-4 text-center text-amber-400"></i> Planes y Módulos</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">Vender</span>
+          <span class="flex items-center gap-3"><i class="fa-solid fa-puzzle-piece w-4 text-center text-amber-400"></i> Mi Plan y Módulos</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">Add-ons</span>
         </button>
       </div>
 
